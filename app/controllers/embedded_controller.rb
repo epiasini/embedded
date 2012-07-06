@@ -26,9 +26,9 @@ class EmbeddedController < ApplicationController
 
   def index
     origpath = params[:path]
+
     path = get_real_path(params[:path])
-    wasdir = 'False'
-    newpath = path
+     
 
     if File.directory?(path)
       wasdir = 'True'
@@ -62,10 +62,10 @@ class EmbeddedController < ApplicationController
   rescue Errno::ENOENT => e
     # File was not found
     #####render_404
-    render_error "Unable to find the file: #{newpath}, from #{origpath}, was dir: #{wasdir}!! Message: #{e}"
+    render_error "Unable to find the file: #{origpath}!! Message: #{e}\n #{e.backtrace}"
   rescue Errno::EACCES => e
     # Can not read the file
-    render_error "Unable to read the file: #{e.message}"
+    render_error "Unable to read the file, message: #{e.message}, #{e.backtrace}"
   rescue EmbeddedControllerError => e
     render_error e.message
   end
@@ -90,7 +90,13 @@ class EmbeddedController < ApplicationController
     real = File.join(real, path) unless path.nil? || path.empty?
     dir = File.expand_path(get_project_directory)
     real = File.expand_path(real)
-    raise Errno::ENOENT unless real.starts_with?(dir) && File.exist?(real)
+    
+    exists = File.exist?(real)
+    
+    real = File.expand_path(File.join(get_project_directory, path+".html")) unless File.exist?(real)
+    
+    raise EmbeddedControllerError.new("File not found, exists: #{exists}, dir: #{dir}, real: #{real}") unless File.exist?(real)
+    raise EmbeddedControllerError.new("File not starting with dir: #{dir}, real: #{real}") unless real.starts_with?(dir)
     real
   end
 
@@ -105,7 +111,7 @@ class EmbeddedController < ApplicationController
 
   # Renders a given HTML file
   def embed_file(path)
-    @content = File.read(path)
+    @content = File.read(path) 
 
     # Extract html title from embedded page
     if @content =~ %r{<title>([^<]*)</title>}mi
