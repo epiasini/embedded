@@ -95,6 +95,8 @@ class EmbeddedController < ApplicationController
     
     real = File.expand_path(File.join(get_project_directory, path+".html")) unless File.exist?(real)
     
+    real = File.expand_path(File.join(get_project_directory, path+".png")) unless File.exist?(real)
+    
     raise EmbeddedControllerError.new("File not found, exists: #{exists}, dir: #{dir}, real: #{real}") unless File.exist?(real)
     raise EmbeddedControllerError.new("File not starting with dir: #{dir}, real: #{real}") unless real.starts_with?(dir)
     real
