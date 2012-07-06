@@ -5,4 +5,5 @@ RedmineApp::Application.routes.draw do
 
   # This is obviously not what we want, but it's ok as a placeholder.
   match '/embedded/:id' => 'embedded#index'
+  match '/embedded/:id/*path' => 'embedded#index'
 end
